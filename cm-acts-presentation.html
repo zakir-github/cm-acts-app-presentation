@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CM-ACTS — Community Monitoring & Actionable Concerns Tracking System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,450;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0a2a43;
+    --navy-2:#123a5c;
+    --navy-3: #0e3350;
+    --gold:#d4a72c;
+    --gold-light:#f0cc5c;
+    --paper:#f6f1e2;
+    --paper-2:#efe7d0;
+    --clay:#a63d2f;
+    --ink:#142029;
+    --ink-soft:#3c4a52;
+    --line: rgba(20,32,41,0.12);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    overflow-x:hidden;
+  }
+
+  .scroller{
+    height:100vh;
+    overflow-y:scroll;
+    scroll-snap-type:y mandatory;
+  }
+
+  section{
+    min-height:100vh;
+    width:100%;
+    scroll-snap-align:start;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6vh 8vw;
+    overflow:hidden;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    opacity:0.75;
+    margin-bottom:1.1rem;
+    display:flex;
+    align-items:center;
+    gap:0.6em;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px;height:1px;
+    background:currentColor;
+    opacity:0.6;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    line-height:1.04;
+    letter-spacing:-0.01em;
+  }
+
+  p{ line-height:1.6; color:var(--ink-soft); }
+
+  /* ---------- NAV DOTS ---------- */
+  .navdots{
+    position:fixed;
+    right:2.2vw;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:50;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .navdots button{
+    width:9px;height:9px;
+    border-radius:50%;
+    border:1px solid rgba(246,241,226,0.9);
+    background:transparent;
+    cursor:pointer;
+    padding:0;
+    transition:all .35s ease;
+  }
+  .navdots button.active{
+    background:var(--gold-light);
+    border-color:var(--gold-light);
+    transform:scale(1.3);
+  }
+  body.on-paper .navdots button{ border-color: rgba(20,32,41,0.4); }
+  body.on-paper .navdots button.active{ background:var(--clay); border-color:var(--clay); }
+
+  /* ---------- REVEAL ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .9s cubic-bezier(.22,.61,.36,1), transform .9s cubic-bezier(.22,.61,.36,1);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  .r1{transition-delay:.05s;} .r2{transition-delay:.18s;} .r3{transition-delay:.31s;} .r4{transition-delay:.44s;}
+
+  /* ---------- OKIR MOTIF (signature flowing line) ---------- */
+  .okir-line path{
+    fill:none;
+    stroke-linecap:round;
+    stroke-width:2.4;
+  }
+  .okir-draw{
+    stroke-dasharray:1400;
+    stroke-dashoffset:1400;
+    animation:draw 3.2s cubic-bezier(.4,.1,.2,1) forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+
+  .okir-divider{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    opacity:0.9;
+  }
+
+  /* ---------- HERO ---------- */
+  #hero{
+    background:
+      radial-gradient(ellipse at 78% 18%, rgba(212,167,44,0.16), transparent 45%),
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    color:var(--paper);
+    flex-direction:column;
+    text-align:left;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .sunburst{
+    position:absolute;
+    top:-30vh; right:-18vh;
+    width:70vh; height:70vh;
+    pointer-events:none;
+    animation:spin 90s linear infinite;
+    opacity:0.5;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .sunburst line{ stroke:var(--gold); stroke-width:1; opacity:0.35; }
+
+  .hero-inner{ max-width:920px; position:relative; z-index:2; }
+  .hero-kicker{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.3em;
+    text-transform:uppercase;
+    font-size:0.75rem;
+    color:var(--gold-light);
+    margin-bottom:1.4rem;
+  }
+  .hero-title{
+    font-size:clamp(2.6rem, 7vw, 5.6rem);
+    color:var(--paper);
+  }
+  .hero-title em{
+    font-style:italic;
+    font-weight:450;
+    color:var(--gold-light);
+  }
+  .hero-sub{
+    margin-top:1.6rem;
+    max-width:560px;
+    color:rgba(246,241,226,0.78);
+    font-size:1.05rem;
+  }
+  .hero-meta{
+    margin-top:2.6rem;
+    display:flex;
+    gap:2.6rem;
+    flex-wrap:wrap;
+  }
+  .hero-meta div{ font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:rgba(246,241,226,0.6); }
+  .hero-meta strong{ display:block; font-family:'Fraunces', serif; font-size:1.5rem; color:var(--gold-light); font-weight:600; }
+
+  .scrollcue{
+    position:absolute;
+    bottom:5vh; left:8vw;
+    display:flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase;
+    color:rgba(246,241,226,0.55);
+  }
+  .scrollcue .stem{
+    width:1px; height:34px; background:rgba(246,241,226,0.35);
+    position:relative; overflow:hidden;
+  }
+  .scrollcue .stem::after{
+    content:""; position:absolute; left:0; top:-100%; width:100%; height:100%;
+    background:var(--gold-light);
+    animation:trickle 2s ease-in-out infinite;
+  }
+  @keyframes trickle{ 50%{ top:100%; } 100%{ top:100%; } }
+
+  /* ---------- CONTEXT SECTION ---------- */
+  #context{ background:var(--paper); }
+  .context-grid{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:6vw;
+    max-width:1180px;
+    width:100%;
+    align-items:center;
+  }
+  .context-grid h2{ font-size:clamp(2rem,4vw,3.1rem); }
+  .context-stat{
+    background:var(--navy);
+    color:var(--paper);
+    border-radius:2px;
+    padding:2.4rem 2rem;
+    position:relative;
+  }
+  .context-stat .num{
+    font-family:'Fraunces', serif;
+    font-size:3.4rem;
+    color:var(--gold-light);
+    font-weight:600;
+  }
+  .context-stat .lbl{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    opacity:0.75;
+    margin-top:0.4rem;
+  }
+  .context-stat + .context-stat{ margin-top:1.2rem; }
+  .stat-stack{ display:flex; flex-direction:column; }
+
+  /* ---------- FEATURES ---------- */
+  #features{ background:var(--paper-2); flex-direction:column; }
+  .features-head{ max-width:680px; margin-bottom:3.4rem; text-align:left; align-self:flex-start; margin-left:auto; margin-right:auto; width:100%; max-width:1180px; }
+  .features-head h2{ font-size:clamp(2rem,4vw,3rem); }
+  .feature-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1.6rem;
+    max-width:1180px;
+    width:100%;
+  }
+  .fcard{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:2.2rem 1.8rem;
+    position:relative;
+    transition:transform .5s cubic-bezier(.22,.61,.36,1), box-shadow .5s ease;
+  }
+  .fcard:hover{
+    transform:translateY(-8px);
+    box-shadow:0 20px 40px -20px rgba(10,42,67,0.35);
+  }
+  .fcard .fnum{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.75rem;
+    color:var(--clay);
+    letter-spacing:0.1em;
+  }
+  .fcard h3{
+    font-size:1.5rem;
+    margin-top:0.9rem;
+    margin-bottom:0.8rem;
+    color:var(--navy);
+  }
+  .fcard p{ font-size:0.95rem; }
+  .fcard svg{ margin-top:1.4rem; }
+
+  /* ---------- HOW IT WORKS ---------- */
+  #how{ background:var(--navy-3); color:var(--paper); flex-direction:column; }
+  .how-head{ max-width:1180px; width:100%; margin-bottom:3rem;}
+  .how-head h2{ font-size:clamp(2rem,4vw,3rem); color:var(--paper); }
+  .steps{
+    max-width:1180px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+  }
+  .step{
+    display:grid;
+    grid-template-columns:100px 1fr;
+    gap:2rem;
+    padding:1.9rem 0;
+    border-top:1px solid rgba(246,241,226,0.14);
+    align-items:center;
+  }
+  .step:last-child{ border-bottom:1px solid rgba(246,241,226,0.14); }
+  .step .sn{
+    font-family:'Fraunces', serif;
+    font-size:2.6rem;
+    color:var(--gold);
+    font-weight:300;
+  }
+  .step h3{ font-size:1.3rem; color:var(--paper); font-weight:600; margin-bottom:0.3rem; }
+  .step p{ color:rgba(246,241,226,0.68); max-width:640px; }
+  .step-line{
+    height:0; width:0;
+    border-left:1px solid var(--gold);
+    margin-left:49px;
+    transition:height 1s ease;
+  }
+  .step-line.in{ height:24px; }
+
+  /* ---------- TRUST ---------- */
+  #trust{ background:var(--paper); flex-direction:column; }
+  .trust-head{ max-width:680px; margin-bottom:3rem; }
+  .trust-head h2{ font-size:clamp(2rem,4vw,3rem); color:var(--navy); }
+  .trust-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1.6rem;
+    max-width:1180px;
+    width:100%;
+  }
+  .tcard{
+    border:1px solid var(--line);
+    padding:2rem 1.6rem;
+    border-radius:3px;
+    background:var(--paper);
+  }
+  .tcard .check{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:var(--navy);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:1.2rem;
+  }
+  .tcard h3{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:1.05rem; color:var(--navy); margin-bottom:0.5rem; }
+  .tcard p{ font-size:0.9rem; }
+
+  /* ---------- 2026 UPDATE ---------- */
+  #update{
+    background: var(--paper-2);
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .update-head{
+    max-width:1180px;
+    width:100%;
+    margin:0 auto 2.6rem;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:2rem;
+    flex-wrap:wrap;
+  }
+  .update-head h2{ font-size:clamp(2rem,4vw,3rem); color:var(--navy); max-width:640px; }
+  .update-year{
+    font-family:'Fraunces', serif;
+    font-weight:300;
+    font-size:clamp(3.5rem,8vw,6rem);
+    color:var(--gold);
+    line-height:0.8;
+    position:relative;
+  }
+  .update-year::after{
+    content:"";
+    position:absolute;
+    left:0; bottom:-14px;
+    height:2px; width:0%;
+    background:var(--clay);
+    animation:barfill 1.4s cubic-bezier(.22,.61,.36,1) forwards;
+    animation-delay:.4s;
+  }
+  @keyframes barfill{ to{ width:100%; } }
+
+  .update-scrolltrack{
+    max-width:1180px;
+    width:100%;
+    margin:0 auto;
+    overflow-x:auto;
+    padding-bottom:1.2rem;
+    scrollbar-width:thin;
+    scrollbar-color:var(--navy) transparent;
+  }
+  .update-grid{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:250px;
+    gap:1.1rem;
+    max-width:1180px;
+  }
+  @media (min-width:1240px){
+    .update-grid{
+      grid-auto-flow:row;
+      grid-template-columns:repeat(4,1fr);
+      grid-auto-columns:unset;
+    }
+    .update-scrolltrack{ overflow:visible; }
+  }
+
+  .ucard{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-left:3px solid var(--navy);
+    border-radius:2px;
+    padding:1.5rem 1.3rem;
+    opacity:0;
+    transform:translateY(22px) scale(.97);
+    transition:opacity .6s cubic-bezier(.22,.61,.36,1), transform .6s cubic-bezier(.22,.61,.36,1), border-left-color .4s ease, box-shadow .4s ease;
+  }
+  .ucard.in{ opacity:1; transform:translateY(0) scale(1); }
+  .ucard:hover{
+    border-left-color:var(--clay);
+    box-shadow:0 16px 30px -18px rgba(10,42,67,0.4);
+  }
+  .ucard .uidx{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    color:var(--clay);
+  }
+  .ucard h3{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    color:var(--navy);
+    margin-top:0.55rem;
+    margin-bottom:0.55rem;
+    line-height:1.3;
+  }
+  .ucard p{ font-size:0.85rem; line-height:1.5; }
+  .ucard .utag{
+    display:inline-block;
+    margin-top:0.9rem;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.62rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--navy);
+    background:rgba(10,42,67,0.08);
+    padding:0.25rem 0.55rem;
+    border-radius:2px;
+  }
+  .update-hint{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.7rem;
+    color:var(--ink-soft);
+    opacity:0.6;
+    margin:0.9rem auto 0;
+    max-width:1180px;
+    width:100%;
+    text-align:right;
+  }
+  @media (min-width:1240px){ .update-hint{ display:none; } }
+
+  /* ---------- ARCHITECTURE / FILE TREE ---------- */
+  #architecture, #architecture-ios{
+    background:var(--navy-3);
+    color:var(--paper);
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .arch-head{
+    max-width:1180px;
+    width:100%;
+    margin:0 auto 2.4rem;
+  }
+  .arch-head h2{ font-size:clamp(1.9rem,3.6vw,2.8rem); color:var(--paper); max-width:680px; }
+  .arch-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:0.5rem;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gold-light);
+    border:1px solid rgba(240,204,92,0.35);
+    padding:0.35rem 0.7rem;
+    border-radius:20px;
+    margin-bottom:1.1rem;
+  }
+  .arch-badge::before{ content:"●"; font-size:0.55rem; color:#3ddc84; }
+  .arch-badge.ios-badge::before{ color:#0a84ff; }
+
+  .arch-grid{
+    max-width:1180px;
+    width:100%;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1.15fr 0.85fr;
+    gap:2rem;
+    align-items:start;
+  }
+
+  .terminal{
+    background:#081c2e;
+    border:1px solid rgba(246,241,226,0.12);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .terminal-bar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:0.7rem 0.9rem;
+    background:rgba(246,241,226,0.04);
+    border-bottom:1px solid rgba(246,241,226,0.08);
+  }
+  .terminal-bar span{ width:9px;height:9px;border-radius:50%; }
+  .terminal-bar span:nth-child(1){ background:#ff5f57; }
+  .terminal-bar span:nth-child(2){ background:#febc2e; }
+  .terminal-bar span:nth-child(3){ background:#28c840; }
+  .terminal-bar .tpath{
+    margin-left:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    color:rgba(246,241,226,0.45);
+  }
+  .terminal-body{
+    max-height:56vh;
+    overflow-y:auto;
+    overflow-x:auto;
+    padding:1.2rem 1.3rem;
+    position:relative;
+    clip-path:inset(0 0 100% 0);
+    transition:clip-path 2.4s cubic-bezier(.22,.61,.36,1);
+  }
+  .terminal-body.in{ clip-path:inset(0 0 0% 0); }
+  .terminal-body pre{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    line-height:1.62;
+    color:#dce7ee;
+    white-space:pre;
+  }
+  .terminal-body .cmt{ color:rgba(240,204,92,0.72); }
+  .terminal-body::-webkit-scrollbar{ width:6px; }
+  .terminal-body::-webkit-scrollbar-thumb{ background:rgba(246,241,226,0.18); border-radius:6px; }
+  .cursor-blink{
+    display:inline-block;
+    width:7px; height:14px;
+    background:var(--gold-light);
+    margin-left:2px;
+    vertical-align:-2px;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .arch-summary{
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+  }
+  .acard{
+    background:rgba(246,241,226,0.045);
+    border:1px solid rgba(246,241,226,0.12);
+    border-radius:6px;
+    padding:1.3rem 1.4rem;
+    opacity:0;
+    transform:translateX(18px);
+    transition:opacity .6s cubic-bezier(.22,.61,.36,1), transform .6s cubic-bezier(.22,.61,.36,1), border-color .3s ease;
+  }
+  .acard.in{ opacity:1; transform:translateX(0); }
+  .acard:hover{ border-color:rgba(240,204,92,0.4); }
+  .acard .an{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    color:var(--gold-light);
+    letter-spacing:0.1em;
+  }
+  .acard h3{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    color:var(--paper);
+    margin:0.5rem 0 0.4rem;
+  }
+  .acard p, .acard li{ font-size:0.85rem; color:rgba(246,241,226,0.68); line-height:1.55; }
+  .acard ul{ margin-top:0.5rem; padding-left:1.1rem; }
+  .acard li::marker{ color:var(--gold-light); }
+
+  @media (max-width:900px){
+    .arch-grid{ grid-template-columns:1fr; }
+    .terminal-body{ max-height:44vh; }
+  }
+
+  /* ---------- CLOSING ---------- */
+  #closing{
+    background: linear-gradient(180deg, var(--navy-2) 0%, var(--navy) 100%);
+    color:var(--paper);
+    flex-direction:column;
+    text-align:center;
+  }
+  #closing .eyebrow{ justify-content:center; color:var(--gold-light); }
+  #closing h2{
+    font-size:clamp(2.2rem,5.5vw,4rem);
+    max-width:820px;
+    color:var(--paper);
+  }
+  #closing h2 em{ font-style:italic; color:var(--gold-light); font-weight:450; }
+  #closing p{ max-width:520px; margin:1.4rem auto 0; color:rgba(246,241,226,0.75); }
+  .close-meta{
+    margin-top:2.6rem;
+    display:flex;
+    gap:2.4rem;
+    flex-wrap:wrap;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.8rem;
+    color:rgba(246,241,226,0.7);
+  }
+  .close-meta a{ color:var(--gold-light); text-decoration:none; border-bottom:1px solid rgba(240,204,92,0.4); }
+  .badge{
+    margin-top:2.6rem;
+    display:inline-flex;
+    align-items:center;
+    gap:0.6rem;
+    border:1px solid rgba(246,241,226,0.35);
+    padding:0.8rem 1.6rem;
+    border-radius:2px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--paper);
+  }
+
+  /* ---------- STORE BUTTONS ---------- */
+  .store-buttons{
+    margin-top:2.8rem;
+    display:flex;
+    gap:1.1rem;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .store-btn{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:0.75rem;
+    padding:0.85rem 1.5rem;
+    border:1px solid rgba(246,241,226,0.35);
+    border-radius:6px;
+    text-decoration:none;
+    color:var(--paper);
+    background:rgba(246,241,226,0.04);
+    overflow:hidden;
+    isolation:isolate;
+    transform:translateY(0);
+    transition:transform .35s cubic-bezier(.22,.61,.36,1), border-color .35s ease, box-shadow .35s ease;
+  }
+  .store-btn::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background:var(--gold-light);
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform .4s cubic-bezier(.22,.61,.36,1);
+  }
+  .store-btn:hover, .store-btn:focus-visible{
+    transform:translateY(-4px);
+    border-color:var(--gold-light);
+    box-shadow:0 16px 30px -14px rgba(0,0,0,0.45);
+  }
+  .store-btn:hover::before, .store-btn:focus-visible::before{ transform:scaleX(1); }
+  .store-btn:hover .store-text, .store-btn:focus-visible .store-text,
+  .store-btn:hover .store-text small, .store-btn:focus-visible .store-text small{
+    color:var(--navy);
+  }
+  .store-btn:active{ transform:translateY(-1px) scale(0.97); }
+  .store-icon{ flex-shrink:0; transition:transform .4s ease; }
+  .store-btn:hover .store-icon{ transform:scale(1.08) rotate(-4deg); }
+  .store-text{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    line-height:1.15;
+    color:var(--paper);
+    transition:color .35s ease;
+  }
+  .store-text small{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:400;
+    font-size:0.62rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:rgba(246,241,226,0.65);
+    transition:color .35s ease;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:860px){
+    .context-grid{ grid-template-columns:1fr; gap:2.4rem; }
+    .feature-row{ grid-template-columns:1fr; }
+    .trust-grid{ grid-template-columns:1fr; }
+    .step{ grid-template-columns:56px 1fr; gap:1rem; }
+    .step-line{ margin-left:27px; }
+    .navdots{ right:3vw; }
+    section{ padding:8vh 7vw; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+    .reveal{ opacity:1; transform:none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navdots" aria-label="Slide navigation">
+  <button data-i="0" class="active" aria-label="Slide 1"></button>
+  <button data-i="1" aria-label="Slide 2"></button>
+  <button data-i="2" aria-label="Slide 3"></button>
+  <button data-i="3" aria-label="Slide 4"></button>
+  <button data-i="4" aria-label="Slide 5"></button>
+  <button data-i="5" aria-label="Slide 6"></button>
+  <button data-i="6" aria-label="Slide 7"></button>
+  <button data-i="7" aria-label="Slide 8"></button>
+  <button data-i="8" aria-label="Slide 9"></button>
+</nav>
+
+<div class="scroller" id="scroller">
+
+  <!-- HERO -->
+  <section id="hero">
+    <svg class="sunburst" viewBox="0 0 200 200" aria-hidden="true">
+      <g transform="translate(100,100)">
+        <script></script>
+      </g>
+    </svg>
+    <div class="hero-inner">
+      <div class="hero-kicker">Bangsamoro Autonomous Region in Muslim Mindanao</div>
+      <h1 class="hero-title">CM&#8209;ACTS<br><em>a channel for the community's voice.</em></h1>
+      <p class="hero-sub">Community Monitoring and Actionable Concerns Tracking System — the digital platform for the community feedback mechanism in BARMM.</p>
+      <div class="hero-meta">
+        <div><strong>12+</strong>Content rating</div>
+        <div><strong>BARMM</strong>Government · Office of the Chief Minister</div>
+        <div><strong>2026</strong>Latest update</div>
+      </div>
+    </div>
+    <div class="okir-divider" style="position:absolute; bottom:0; left:0; width:100%;">
+      <svg viewBox="0 0 1200 60" width="100%" height="60" preserveAspectRatio="none" class="okir-line" aria-hidden="true">
+        <path class="okir-draw" d="M0,40 C100,10 150,60 250,35 C350,10 400,55 500,30 C600,5 650,50 750,28 C850,6 900,52 1000,30 C1080,14 1130,42 1200,25" stroke="#d4a72c"/>
+      </svg>
+    </div>
+    <div class="scrollcue"><div class="stem"></div>Scroll</div>
+  </section>
+
+  <!-- CONTEXT -->
+  <section id="context">
+    <div class="context-grid">
+      <div class="reveal r1">
+        <div class="eyebrow">The gap it closes</div>
+        <h2>Concerns raised in a community rarely travel in a straight line to the office that can act on them.</h2>
+        <p style="margin-top:1.4rem; max-width:520px;">CM&#8209;ACTS gives residents across BARMM a direct, trackable route from a reported concern to a resolved one — replacing word-of-mouth and lost paperwork with a single accountable record.</p>
+      </div>
+      <div class="stat-stack reveal r2">
+        <div class="context-stat">
+          <div class="num">Direct</div>
+          <div class="lbl">Route from resident to responsible office</div>
+        </div>
+        <div class="context-stat">
+          <div class="num">Tracked</div>
+          <div class="lbl">Every concern keeps a visible status</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="features-head reveal r1">
+      <div class="eyebrow">What the app does</div>
+      <h2>Three moves, one accountable loop.</h2>
+    </div>
+    <div class="feature-row">
+      <div class="fcard reveal r1">
+        <div class="fnum">01 — Speak up</div>
+        <h3>Report a concern</h3>
+        <p>Residents log an issue directly from their phone — no office visit, no lost paper trail.</p>
+        <svg width="60" height="24" viewBox="0 0 60 24"><path d="M2,18 C12,4 18,20 28,10 C38,0 44,20 58,6" fill="none" stroke="#a63d2f" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="fcard reveal r2">
+        <div class="fnum">02 — Follow it</div>
+        <h3>Track the status</h3>
+        <p>Each concern carries a visible status, so the person who raised it can see it move.</p>
+        <svg width="60" height="24" viewBox="0 0 60 24"><path d="M2,18 C12,4 18,20 28,10 C38,0 44,20 58,6" fill="none" stroke="#a63d2f" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="fcard reveal r3">
+        <div class="fnum">03 — See it through</div>
+        <h3>Confirm resolution</h3>
+        <p>Concerns close with a record of what was done, building a public account of follow-through.</p>
+        <svg width="60" height="24" viewBox="0 0 60 24"><path d="M2,18 C12,4 18,20 28,10 C38,0 44,20 58,6" fill="none" stroke="#a63d2f" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="how-head reveal r1">
+      <div class="eyebrow">How it works</div>
+      <h2>From a concern in a community to a closed case.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal r1">
+        <div class="sn">01</div>
+        <div><h3>Submit</h3><p>A resident describes the concern within the app — the entry point for the whole system.</p></div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step reveal r2">
+        <div class="sn">02</div>
+        <div><h3>Route</h3><p>The concern reaches the office responsible for that kind of issue in BARMM.</p></div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step reveal r3">
+        <div class="sn">03</div>
+        <div><h3>Act</h3><p>The responsible office takes action and updates the status the resident sees.</p></div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step reveal r4">
+        <div class="sn">04</div>
+        <div><h3>Resolve</h3><p>The case closes with a record — the concern is monitored end to end, not just filed.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section id="trust">
+    <div class="trust-head reveal r1">
+      <div class="eyebrow">Data & trust</div>
+      <h2>What CM&#8209;ACTS does with what you share.</h2>
+    </div>
+    <div class="trust-grid">
+      <div class="tcard reveal r1">
+        <div class="check"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2,8 L6,12 L14,3" fill="none" stroke="#f0cc5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>No data shared with third parties</h3>
+        <p>As declared by the developer to Google Play's Data safety section.</p>
+      </div>
+      <div class="tcard reveal r2">
+        <div class="check"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2,8 L6,12 L14,3" fill="none" stroke="#f0cc5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>No data collected</h3>
+        <p>Also as declared by the developer — practices may be updated over time.</p>
+      </div>
+      <div class="tcard reveal r3">
+        <div class="check"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2,8 L6,12 L14,3" fill="none" stroke="#f0cc5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Rated 12+</h3>
+        <p>Parental guidance recommended — the app involves user interaction.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2026 UPDATE -->
+  <section id="update">
+    <div class="update-head reveal r1">
+      <div>
+        <div class="eyebrow">Latest release</div>
+        <h2>What's new in CM&#8209;ACTS for 2026.</h2>
+      </div>
+      <div class="update-year">'26</div>
+    </div>
+    <div class="update-scrolltrack">
+      <div class="update-grid">
+        <div class="ucard"><div class="uidx">01</div><h3>Project upgrade</h3><p>Dependencies and deprecated code updated for compatibility with the latest Google Play and App Store requirements.</p><span class="utag">Foundation</span></div>
+        <div class="ucard"><div class="uidx">02</div><h3>Authentication improvements</h3><p>A more dynamic, reliable login flow — improved Forgot Password, caching, and error handling.</p><span class="utag">Account</span></div>
+        <div class="ucard"><div class="uidx">03</div><h3>Application list enhancement</h3><p>Refreshed list UI now shows each application's status alongside its date.</p><span class="utag">Interface</span></div>
+        <div class="ucard"><div class="uidx">04</div><h3>In-app chat</h3><p>Message the responsible office directly about questions on any submitted application.</p><span class="utag">New feature</span></div>
+        <div class="ucard"><div class="uidx">05</div><h3>Application details enhancement</h3><p>The details page carries a refreshed UI and more complete information at a glance.</p><span class="utag">Interface</span></div>
+        <div class="ucard"><div class="uidx">06</div><h3>Feedback category improvements</h3><p>A smoother, more usable Feedback Category page.</p><span class="utag">Usability</span></div>
+        <div class="ucard"><div class="uidx">07</div><h3>Dynamic auto-suggestions</h3><p>Input suggestions now adapt automatically based on the municipality selected.</p><span class="utag">Usability</span></div>
+        <div class="ucard"><div class="uidx">08</div><h3>Confidentiality notice</h3><p>Users now acknowledge a confidentiality notice before proceeding with an application.</p><span class="utag">Trust</span></div>
+        <div class="ucard"><div class="uidx">09</div><h3>File upload validation</h3><p>Uploads are now capped at 3 files, with an overall size limit of 8 MB.</p><span class="utag">Reliability</span></div>
+        <div class="ucard"><div class="uidx">10</div><h3>Notification center</h3><p>A new Notification page surfaces unread alerts, with a Show All Notifications page for history.</p><span class="utag">New feature</span></div>
+        <div class="ucard"><div class="uidx">11</div><h3>Notification preferences</h3><p>Manage and customize exactly which notifications you receive.</p><span class="utag">Control</span></div>
+      </div>
+    </div>
+    <div class="update-hint reveal r2">&larr; swipe to see all 11 updates &rarr;</div>
+  </section>
+
+  <!-- ARCHITECTURE / FILE TREE -->
+  <section id="architecture">
+    <div class="arch-head reveal r1">
+      <div class="arch-badge">Android codebase</div>
+      <h2>Under the hood — how the CM&#8209;ACTS Android app is put together.</h2>
+    </div>
+    <div class="arch-grid">
+      <div class="terminal reveal r2">
+        <div class="terminal-bar">
+          <span></span><span></span><span></span>
+          <span class="tpath">barmm-cfm-mobile/</span>
+        </div>
+        <div class="terminal-body" id="fileTree">
+<pre>barmm-cfm-mobile/
+├── build.gradle (Project)          <span class="cmt"># Root build config (Kotlin 1.6.21, Hilt 2.41)</span>
+├── settings.gradle                 <span class="cmt"># Project modules: :app and :common</span>
+├── gradle.properties               <span class="cmt"># Project-wide properties</span>
+├── libs/
+│   └── MaskedEditText-1.0.5.aar    <span class="cmt"># Local dependency for phone input</span>
+├── common/                         <span class="cmt"># Shared module (State wrapper, BaseFragment)</span>
+│   ├── build.gradle
+│   └── src/main/java/com/barmm/common/
+│       ├── State.kt                <span class="cmt"># Loading/Success/Error sealed class</span>
+│       └── fragment/
+│           └── BaseFragment.kt     <span class="cmt"># Abstract fragment with ViewBinding setup</span>
+└── app/                            <span class="cmt"># Main application module</span>
+    ├── build.gradle (App)          <span class="cmt"># App config (Target SDK 35, ViewBinding enabled)</span>
+    └── src/main/
+        ├── AndroidManifest.xml
+        ├── java/com/barmm/cfmv3/
+        │   ├── di/                 <span class="cmt"># Hilt Modules (Network, Database injection)</span>
+        │   ├── data/
+        │   │   ├── local/          <span class="cmt"># Room DB, UserDAO</span>
+        │   │   └── remote/         <span class="cmt"># Retrofit API Services (DashboardApiService)</span>
+        │   └── presentation/       <span class="cmt"># UI Layer</span>
+        │       ├── main/           <span class="cmt"># MainActivity, MainViewModel</span>
+        │       │   └── home/       <span class="cmt"># HomeFragment, HomeViewModel</span>
+        │       ├── feedback/       <span class="cmt"># Feedback flow</span>
+        │       │   ├── NewFeedbackFragment.kt        <span class="cmt"># Feedback creation logic</span>
+        │       │   ├── feedbackdetail/               <span class="cmt"># FeedbackDetailFragment</span>
+        │       │   └── messagethread/                <span class="cmt"># Chat/Messaging flow</span>
+        │       │       ├── MessageThreadFragment.kt  <span class="cmt"># Chat UI & Logic</span>
+        │       │       ├── MessageThreadViewModel.kt
+        │       │       ├── MessageThreadReplyAdapter.kt
+        │       │       └── MessageThreadSenderAdapter.kt
+        │       ├── notification/   <span class="cmt"># Alerts & Badges</span>
+        │       │   ├── NotificationFragment.kt       <span class="cmt"># Unified list & Badge logic</span>
+        │       │   ├── NotificationViewModel.kt
+        │       │   └── NotificationAdapter.kt
+        │       └── splash/register/<span class="cmt"># Registration flow</span>
+        │           ├── RegisterFragment.kt           <span class="cmt"># Number &amp; OTP UI</span>
+        │           └── RegisterViewModel.kt          <span class="cmt"># State machine logic</span>
+        └── res/
+            ├── layout/             <span class="cmt"># XML Layouts</span>
+            │   ├── fragment_notification.xml
+            │   ├── fragment_message.xml              <span class="cmt"># Messaging thread UI</span>
+            │   ├── fragment_register.xml             <span class="cmt"># Registration UI</span>
+            │   └── toolbar_layout.xml                <span class="cmt"># Shared custom toolbar</span>
+            ├── drawable/           <span class="cmt"># Icons and shapes</span>
+            │   ├── bg_avatar_circle.xml              <span class="cmt"># Custom avatar shape</span>
+            │   ├── ic_arrow_forward.xml              <span class="cmt"># Replaced private system icon</span>
+            │   └── ic_barmm.xml                      <span class="cmt"># App Logo</span>
+            ├── values/
+            │   ├── colors.xml
+            │   ├── strings.xml                       <span class="cmt"># Localized strings</span>
+            │   └── styles.xml                        <span class="cmt"># loginDefaultButton, etc.</span>
+            └── navigation/
+                └── main_nav.xml                      <span class="cmt"># Jetpack Navigation Graph</span></pre><span class="cursor-blink"></span>
+        </div>
+      </div>
+
+      <div class="arch-summary">
+        <div class="acard reveal r1">
+          <div class="an">01 — Architecture</div>
+          <h3>MVVM with Clean Architecture</h3>
+          <p>Clear separation between data, domain, and presentation layers across the <code>:app</code> and <code>:common</code> modules.</p>
+        </div>
+        <div class="acard reveal r2">
+          <div class="an">02 — Navigation</div>
+          <h3>Driven by main_nav.xml</h3>
+          <p>Handled via an <code>activityViewModel</code> inside fragments to trigger transitions between MAIN, DETAIL, and CATEGORY.</p>
+        </div>
+        <div class="acard reveal r3">
+          <div class="an">03 — Data flow</div>
+          <h3>Remote, local, and shared state</h3>
+          <ul>
+            <li><strong>Remote:</strong> Retrofit with Moshi fetches feedback and notifications.</li>
+            <li><strong>Local:</strong> Room (<code>UserDao</code>) persists user session data.</li>
+            <li><strong>State:</strong> A shared <code>State&lt;T&gt;</code> (from <code>:common</code>) drives loading spinners and error toasts consistently.</li>
+          </ul>
+        </div>
+        <div class="acard reveal r4">
+          <div class="an">04 — UI components</div>
+          <h3>Custom toolbars & adapters</h3>
+          <p>Custom toolbars included via <code>appBarInclude</code> across most layouts; the messaging thread leans on <code>ConcatAdapter</code> to combine sender info with reply lists.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE / FILE TREE — iOS -->
+  <section id="architecture-ios">
+    <div class="arch-head reveal r1">
+      <div class="arch-badge ios-badge">iOS codebase</div>
+      <h2>...and here's how the CM&#8209;ACTS iOS app is put together.</h2>
+    </div>
+    <div class="arch-grid">
+      <div class="terminal reveal r2">
+        <div class="terminal-bar">
+          <span></span><span></span><span></span>
+          <span class="tpath">cm_acts/</span>
+        </div>
+        <div class="terminal-body" id="fileTreeIos">
+<pre>cm_acts/
+├── Podfile                              <span class="cmt"># CocoaPods: Moya, Realm, DropDown, RxSwift</span>
+├── Podfile.lock
+├── build.log
+├── .gitignore
+├── .github/workflows/
+│   └── cd.yml                           <span class="cmt"># CI/CD pipeline</span>
+├── BARMM Tests/
+│   └── BARMM_Tests.swift
+├── barmm.xcodeproj/
+│   └── project.pbxproj
+├── barmm.xcworkspace/
+│
+├── barmm/                               <span class="cmt"># Main app target</span>
+│   ├── AppDelegate.swift                <span class="cmt"># Lifecycle, push notification registration</span>
+│   ├── SceneDelegate.swift              <span class="cmt"># iOS 13+ scene lifecycle</span>
+│   ├── LandingController.swift          <span class="cmt"># Splash / landing</span>
+│   ├── Info.plist                       <span class="cmt"># baseURL, iOS 14.0 target</span>
+│   ├── GoogleService-Info.plist         <span class="cmt"># Firebase</span>
+│   ├── Assets.xcassets/                 <span class="cmt"># 50+ image sets (icons, logo, avatars, etc.)</span>
+│   │   ├── AppIcon.appiconset/
+│   │   ├── AccentColor.colorset/
+│   │   ├── avatarIcons/                 <span class="cmt"># ic_avatar_a through ic_avatar_j</span>
+│   │   ├── ic_bangsamoro.imageset/      <span class="cmt"># CM-ACTS logo</span>
+│   │   ├── ic_barmm.imageset/
+│   │   ├── ic_login_bg.imageset/
+│   │   ├── ic_create_feedback.imageset/
+│   │   ├── ic_attachment.imageset/
+│   │   ├── ic_camera.imageset/
+│   │   ├── ic_search.imageset/
+│   │   ├── ic_empty_feedback.imageset/
+│   │   ├── ic_attachment_remove.imageset/
+│   │   ├── ic_circular_loading.imageset/
+│   │   ├── ic_confirmation.imageset/
+│   │   ├── ic_current_location.imageset/
+│   │   ├── ic_delete.imageset/
+│   │   ├── ic_drawer_file.imageset/
+│   │   ├── ic_drawer_help.imageset/
+│   │   ├── ic_drawer_info.imageset/
+│   │   ├── ic_drawer_write.imageset/
+│   │   ├── ic_feedback_profile.imageset/
+│   │   ├── ic_feedback_success.imageset/
+│   │   ├── ic_help.imageset/
+│   │   ├── ic_image_attachment.imageset/
+│   │   ├── ic_logout.imageset/
+│   │   ├── ic_menu.imageset/
+│   │   ├── ic_pdf_attachment.imageset/
+│   │   ├── ic_pdf_file.imageset/
+│   │   ├── ic_person.imageset/
+│   │   ├── ic_popup_camera.imageset/
+│   │   ├── ic_popup_file.imageset/
+│   │   ├── ic_popup_folder.imageset/
+│   │   ├── ic_popup_photo.imageset/
+│   │   ├── radiobutton_default.imageset/
+│   │   ├── radiobutton_selected.imageset/
+│   │   ├── ic_arrow_back.imageset/
+│   │   ├── ic_arrow_down.imageset/
+│   │   ├── ic_back_button.imageset/
+│   │   ├── ic_about_1..4.imageset/
+│   │   └── ...
+│   │
+│   ├── Base.lproj/
+│   │   ├── LaunchScreen.storyboard
+│   │   └── Main.storyboard
+│   │
+│   ├── Fonts/
+│   │   ├── Lato-*.ttf                  <span class="cmt"># 8 variants</span>
+│   │   ├── Rubik-*.ttf                 <span class="cmt"># 14 variants</span>
+│   │   ├── Gotham-Ultra.ttf
+│   │   └── Roboto-Regular.ttf
+│   │
+│   ├── Common/                          <span class="cmt"># Shared base classes</span>
+│   │   ├── BaseController.swift         <span class="cmt"># Abstract VC (loading/error handling)</span>
+│   │   ├── BaseFormController.swift     <span class="cmt"># Form VC base (text field management)</span>
+│   │   └── Custom Views/
+│   │       ├── CustomAttachmentPopupController.swift  <span class="cmt"># Camera/file/photo picker</span>
+│   │       ├── CustomLoadingController.swift          <span class="cmt"># Loading overlay</span>
+│   │       ├── CustomPopupController.swift            <span class="cmt"># Alert popups</span>
+│   │       ├── CustomTextField.swift                  <span class="cmt"># Styled text field</span>
+│   │       ├── DropdownField.swift                    <span class="cmt"># Searchable dropdown</span>
+│   │       ├── FormTextField.swift                    <span class="cmt"># Form-specific field</span>
+│   │       └── NavigationBarRightButtonView.swift     <span class="cmt"># Right bar button layout</span>
+│   │
+│   ├── Extension/
+│   │   ├── GlobalFunction.swift         <span class="cmt"># Category title resolver, helpers</span>
+│   │   ├── Notification.Name+Extensions.swift
+│   │   ├── RxSwift+Extension.swift
+│   │   ├── String+Extension.swift
+│   │   ├── UIColor+Extension.swift
+│   │   ├── UIImage+Extension.swift      <span class="cmt"># Resize, compression</span>
+│   │   ├── UILabel+Extension.swift
+│   │   └── UIViewController+Extension.swift
+│   │
+│   └── Cleanup/Screens/                 <span class="cmt"># MVVM + Coordinator structure</span>
+│       │
+│       ├── Login and Registration/      <span class="cmt"># Auth flow</span>
+│       │   ├── Controllers/
+│       │   │   ├── LoginAndRegistrationController.swift    <span class="cmt"># Phone input + OTP</span>
+│       │   │   ├── RegisterVerificationController.swift   <span class="cmt"># OTP verify</span>
+│       │   │   └── RegistrationConfirmationController.swift
+│       │   ├── Coordinators/
+│       │   │   └── LoginAndRegistrationCoordinator.swift
+│       │   ├── Models/
+│       │   │   └── UserResponse.swift
+│       │   ├── Services/
+│       │   │   └── LoginAndRegistrationService.swift      <span class="cmt"># Moya API</span>
+│       │   └── View Models/
+│       │       └── LoginAndRegistrationViewModel.swift
+│       │
+│       ├── Home/                        <span class="cmt"># Dashboard / feed</span>
+│       │   ├── Cells/
+│       │   │   └── FeedbackCell.swift                    <span class="cmt"># Status, date, category</span>
+│       │   ├── Controllers/
+│       │   │   └── HomeViewController.swift              <span class="cmt"># Feed, badge, search</span>
+│       │   ├── Coordinators/
+│       │   │   └── HomeCoordinator.swift
+│       │   ├── Models/
+│       │   │   └── FeedbackModel.swift
+│       │   ├── Services/
+│       │   │   └── FeedbackService.swift
+│       │   └── View Models/
+│       │       └── HomeViewModel.swift
+│       │
+│       ├── Category List/               <span class="cmt"># Feedback category picker</span>
+│       │   ├── Cells/
+│       │   │   └── CategoryCell.swift
+│       │   ├── Controllers/
+│       │   │   ├── CategoryController.swift
+│       │   │   └── CategoryHelpController.swift
+│       │   ├── Coordinators/
+│       │   │   └── CategoryCoordinator.swift
+│       │   ├── Models/
+│       │   │   └── CategoryModel.swift
+│       │   └── View Models/
+│       │       ├── CategoryViewModel.swift
+│       │       └── CategoryHelpViewModel.swift
+│       │
+│       ├── Feedback Forms/              <span class="cmt"># 10 form types (A–J)</span>
+│       │   ├── Cells/
+│       │   │   └── AttachmentCell.swift
+│       │   ├── Controllers/
+│       │   │   ├── FeedbackAFormController.swift
+│       │   │   ├── FeedbackBFormController.swift         <span class="cmt"># With citizen info</span>
+│       │   │   ├── FeedbackCFormController.swift
+│       │   │   ├── FeedbackDFormController.swift
+│       │   │   ├── FeedbackEFormController.swift
+│       │   │   ├── FeedbackFFormController.swift
+│       │   │   ├── FeedbackGFormController.swift
+│       │   │   ├── FeedbackHFormController.swift
+│       │   │   ├── FeedbackIFormController.swift
+│       │   │   ├── FeedbackJFormController.swift
+│       │   │   ├── FeedbackSuccessController.swift       <span class="cmt"># Post-submit</span>
+│       │   │   └── ScannerViewController.swift           <span class="cmt"># QR/barcode</span>
+│       │   ├── Models/Dropdown Models/
+│       │   │   ├── AgencyModel.swift
+│       │   │   ├── BarangayModel.swift
+│       │   │   ├── CityModel.swift
+│       │   │   ├── FeedbackPurposeModel.swift
+│       │   │   ├── FeedbackTypeModel.swift
+│       │   │   ├── LevelModel.swift
+│       │   │   ├── ProjectDetailModel.swift
+│       │   │   ├── ProjectModel.swift
+│       │   │   ├── ProvinceModel.swift
+│       │   │   └── QuestionModel.swift                  <span class="cmt"># Auto-suggestion</span>
+│       │   ├── Services/
+│       │   │   ├── LocationService.swift                <span class="cmt"># GPS coordinates</span>
+│       │   │   └── Parameters/
+│       │   │       └── FeedbackParameter.swift          <span class="cmt"># Encodable params</span>
+│       │   └── View Models/
+│       │       └── FeedbackViewModel.swift
+│       │
+│       ├── Message/                     <span class="cmt"># In-app chat</span>
+│       │   ├── Cells/
+│       │   │   ├── MessageCell.swift                    <span class="cmt"># Chat bubble</span>
+│       │   │   └── FeedbackInfoAttachmentCell.swift     <span class="cmt"># Attachment row</span>
+│       │   ├── Controllers/
+│       │   │   ├── MessageController.swift              <span class="cmt"># Thread + suggestions</span>
+│       │   │   └── Feedback Details/
+│       │   │       ├── FeedbackADetailController.swift
+│       │   │       ├── FeedbackBDetailController.swift
+│       │   │       ├── FeedbackCDetailController.swift
+│       │   │       ├── FeedbackGDetailController.swift
+│       │   │       ├── FeedbackHDetailController.swift
+│       │   │       ├── FeedbackIDetailController.swift
+│       │   │       ├── FeedbackJDetailController.swift
+│       │   │       └── ImagePreviewViewController.swift <span class="cmt"># Full-screen</span>
+│       │   ├── Coordinators/
+│       │   │   └── MessageCoordinator.swift
+│       │   ├── Models/
+│       │   │   └── MessageModel.swift
+│       │   └── View Models/
+│       │       ├── MessageViewModel.swift
+│       │       └── FeedbackDetailViewModel.swift
+│       │
+│       ├── Notification/                <span class="cmt"># Notifications</span>
+│       │   ├── Cells/
+│       │   │   └── NotificationCell.swift               <span class="cmt"># Read/unread styling</span>
+│       │   ├── Controllers/
+│       │   │   └── NotificationController.swift         <span class="cmt"># List, filter, badge</span>
+│       │   ├── Models/
+│       │   │   └── NotificationModel.swift
+│       │   ├── Services/
+│       │   │   └── NotificationService.swift            <span class="cmt"># Unread endpoint</span>
+│       │   └── View Models/
+│       │       └── NotificationViewModel.swift
+│       │
+│       ├── Navigation Drawer/           <span class="cmt"># Side menu</span>
+│       │   ├── Controllers/
+│       │   │   ├── DrawerController.swift               <span class="cmt"># Profile, logout, etc.</span>
+│       │   │   └── AboutController.swift
+│       │   ├── Coordinators/
+│       │   │   └── DrawerCoordinator.swift
+│       │   ├── Services/
+│       │   │   ├── CurrentUser.swift                   <span class="cmt"># Realm-backed session</span>
+│       │   │   └── UserService.swift
+│       │   └── View Models/
+│       │       └── DrawerViewModel.swift
+│       │
+│       └── Settings/
+│           ├── Controllers/
+│           │   └── NotificationPreferencesController.swift
+│           └── Services/
+│               └── NotificationPreferencesService.swift</pre><span class="cursor-blink"></span>
+        </div>
+      </div>
+
+      <div class="arch-summary">
+        <div class="acard reveal r1">
+          <div class="an">01 — Architecture</div>
+          <h3>MVVM + Coordinator pattern</h3>
+          <p>Screens separated into Controllers, View Models, Coordinators, and Services — clean single-responsibility throughout the <code>Cleanup/Screens/</code> directory.</p>
+        </div>
+        <div class="acard reveal r2">
+          <div class="an">02 — Networking</div>
+          <h3>Moya + Realm offline cache</h3>
+          <p>Moya handles API requests with <code>AccessTokenAuthorizable</code> for auth; Realm persists user data, feedback state, and agency lists locally. Network logging enabled for debugging.</p>
+        </div>
+        <div class="acard reveal r3">
+          <div class="an">03 — Notifications</div>
+          <h3>Unread badge + preferences + pagination</h3>
+          <p>Full notification feature: paginated list, mark-as-read, unread/all filtering, badge with a dedicated unread endpoint, and a notification preferences screen.</p>
+        </div>
+        <div class="acard reveal r4">
+          <div class="an">04 — Key integrations</div>
+          <h3>DropDown, ImagePreview, attachments</h3>
+          <ul>
+            <li><strong>DropDown:</strong> searchable dropdown for agency selection.</li>
+            <li><strong>ImagePreview:</strong> media preview for feedback attachments.</li>
+            <li><strong>File validation:</strong> 3-file cap, 8 MB total limit.</li>
+            <li><strong>CLLocationManager:</strong> iOS 14-compatible location auth.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING -->
+  <section id="closing">
+    <div class="reveal r1">
+      <div class="eyebrow">Get CM-ACTS</div>
+      <h2>Built for a region that wants to be <em>heard, and answered.</em></h2>
+      <p>Developed by the Office of the Chief Minister, Bangsamoro Autonomous Region in Muslim Mindanao.</p>
+      <div class="close-meta">
+        <div>Support: <a href="mailto:ico@bangsamoro.gov.ph">ico@bangsamoro.gov.ph</a></div>
+        <div>Cotabato City, Philippines</div>
+        <div>+63 917 833 1429</div>
+      </div>
+      <div class="store-buttons">
+        <a class="store-btn" href="https://play.google.com/store/apps/details?id=com.barmm.cfmv3" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play, opens in a new tab">
+          <svg class="store-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <path d="M3.6 2.4c-.3.3-.5.7-.5 1.2v16.8c0 .5.2.9.5 1.2l.1.1L13 12.3v-.6L3.7 2.3l-.1.1z" fill="#00d2ff"/>
+            <path d="M16.1 15.4l-3.1-3.1v-.6l3.1-3.1 3.5 2c1 .6 1 1.5 0 2.1l-3.5 2z" fill="#f9e400"/>
+            <path d="M16.1 15.4L12.7 12 3.6 21.6c.4.4 1 .4 1.6.1l10.9-6.3" fill="#ff3a44"/>
+            <path d="M16.1 8.6L5.2 2.3c-.6-.3-1.2-.3-1.6.1L12.7 12l3.4-3.4z" fill="#00e677"/>
+          </svg>
+          <span class="store-text"><small>Get it on</small>Google Play</span>
+        </a>
+        <a class="store-btn" href="https://apps.apple.com/us/app/barmm-cm-acts/id1628960693" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store, opens in a new tab">
+          <svg class="store-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path fill="#f6f1e2" d="M16.7 12.7c0-2 1.6-3 1.7-3.1-1-1.4-2.5-1.6-3-1.6-1.3-.1-2.5.7-3.1.7-.6 0-1.6-.7-2.7-.7-1.4 0-2.6.8-3.3 2-1.4 2.4-.4 6 1 8 .7 1 1.5 2.1 2.6 2 1-.1 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.6 1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3-.1 0-2.2-.8-2.2-3.4z"/>
+            <path fill="#f6f1e2" d="M14.4 6.5c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z"/>
+          </svg>
+          <span class="store-text"><small>Download on the</small>App Store</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); }
+    });
+  }, { threshold:0.2 });
+  revealEls.forEach(el=>io.observe(el));
+
+  const lineIo = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold:0.5 });
+  document.querySelectorAll('.step-line').forEach(el=>lineIo.observe(el));
+
+  // Staggered reveal for the 2026 update cards
+  const ucards = document.querySelectorAll('.ucard');
+  const ucardIo = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        ucards.forEach((card,i)=>{
+          setTimeout(()=>card.classList.add('in'), i*90);
+        });
+        ucardIo.disconnect();
+      }
+    });
+  }, { threshold:0.15 });
+  const updateSection = document.getElementById('update');
+  if(updateSection) ucardIo.observe(updateSection);
+
+  // Terminal file-tree reveal
+  const fileTree = document.getElementById('fileTree');
+  if(fileTree){
+    const treeIo = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          fileTree.classList.add('in');
+          treeIo.disconnect();
+        }
+      });
+    }, { threshold:0.2 });
+    treeIo.observe(fileTree);
+  }
+
+  const fileTreeIos = document.getElementById('fileTreeIos');
+  if(fileTreeIos){
+    const treeIoIos = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          fileTreeIos.classList.add('in');
+          treeIoIos.disconnect();
+        }
+      });
+    }, { threshold:0.2 });
+    treeIoIos.observe(fileTreeIos);
+  }
+
+  // Nav dots
+  const sections = document.querySelectorAll('section');
+  const dots = document.querySelectorAll('.navdots button');
+  const scroller = document.getElementById('scroller');
+  const darkSections = new Set(['hero','how','architecture','architecture-ios','closing']);
+
+  dots.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      sections[+btn.dataset.i].scrollIntoView({behavior:'smooth'});
+    });
+  });
+
+  const navIo = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const idx = [...sections].indexOf(entry.target);
+        dots.forEach(d=>d.classList.remove('active'));
+        if(dots[idx]) dots[idx].classList.add('active');
+        document.body.classList.toggle('on-paper', !darkSections.has(entry.target.id));
+      }
+    });
+  }, { threshold:0.6 });
+  sections.forEach(s=>navIo.observe(s));
+
+  // Sunburst rays
+  const sunburst = document.querySelector('.sunburst g');
+  for(let i=0;i<24;i++){
+    const angle = (i/24)*360;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',0); line.setAttribute('y1',0);
+    line.setAttribute('x2',0); line.setAttribute('y2',-95);
+    line.setAttribute('transform',`rotate(${angle})`);
+    sunburst.appendChild(line);
+  }
+</script>
+
+</body>
+</html>
