@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/cm-acts-presentation.html"
+    }
+  ]
+}
